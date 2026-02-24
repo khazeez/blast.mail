@@ -1,6 +1,7 @@
 import { EmailBlock, BlockType, defaultBlockProps } from "./types";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -319,6 +320,86 @@ export function BlockConfigPanel({ block, onUpdate }: BlockConfigPanelProps) {
               step={5}
             />
           </div>
+        )}
+
+        {block.type === "social" && (
+          <>
+            <div className="space-y-2">
+              <Label>Alignment</Label>
+              <Select
+                value={block.props.align || "center"}
+                onValueChange={(v) => handleChange("align", v)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="left">Left</SelectItem>
+                  <SelectItem value="center">Center</SelectItem>
+                  <SelectItem value="right">Right</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-3">
+              <Label>Social Platforms</Label>
+              {block.props.platforms?.map((platform: any, index: number) => (
+                <div key={index} className="flex items-center gap-2">
+                  <Select
+                    value={platform.icon || platform.name}
+                    onValueChange={(v) => {
+                      const newPlatforms = [...(block.props.platforms || [])];
+                      newPlatforms[index] = { ...platform, icon: v, name: v };
+                      handleChange("platforms", newPlatforms);
+                    }}
+                  >
+                    <SelectTrigger className="w-[120px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="facebook">Facebook</SelectItem>
+                      <SelectItem value="twitter">Twitter</SelectItem>
+                      <SelectItem value="instagram">Instagram</SelectItem>
+                      <SelectItem value="linkedin">LinkedIn</SelectItem>
+                      <SelectItem value="youtube">YouTube</SelectItem>
+                      <SelectItem value="email">Email</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    placeholder="https://..."
+                    value={platform.url || ""}
+                    onChange={(e) => {
+                      const newPlatforms = [...(block.props.platforms || [])];
+                      newPlatforms[index] = { ...platform, url: e.target.value };
+                      handleChange("platforms", newPlatforms);
+                    }}
+                    className="flex-1"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-destructive"
+                    onClick={() => {
+                      const newPlatforms = (block.props.platforms || []).filter((_: any, i: number) => i !== index);
+                      handleChange("platforms", newPlatforms);
+                    }}
+                  >
+                    ×
+                  </Button>
+                </div>
+              ))}
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => {
+                  const newPlatforms = [...(block.props.platforms || []), { name: "facebook", url: "", icon: "facebook" }];
+                  handleChange("platforms", newPlatforms);
+                }}
+              >
+                + Add Platform
+              </Button>
+            </div>
+          </>
         )}
 
         {block.type === "footer" && (
