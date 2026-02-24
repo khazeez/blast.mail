@@ -1,52 +1,34 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { EmailBuilder } from "@/components/email-builder";
 import { RichTextEditor } from "@/components/campaigns/RichTextEditor";
-import { MousePointer2, Code, FileText, Plus } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/use-auth";
+import { TemplateBrowser } from "@/components/campaigns/TemplateBrowser";
+import { MousePointer2, Code, FileText } from "lucide-react";
 import type { CampaignData } from "@/pages/CampaignCreate";
-import { cn } from "@/lib/utils";
 
 interface StepContentProps {
   data: CampaignData;
   onChange: (partial: Partial<CampaignData>) => void;
 }
 
+interface Template {
+  id: string;
+  name: string;
+  category: string;
+  content: string;
+  description: string | null;
+}
+
 export function StepContent({ data, onChange }: StepContentProps) {
-  const { user } = useAuth();
-
-  const { data: templates } = useQuery({
-    queryKey: ["templates"],
-    queryFn: async () => {
-      if (!user) return [];
-      const { data, error } = await supabase
-        .from("templates")
-        .select("id, name, category, content, description")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user,
-  });
-
-  const handleSelectTemplate = (templateId: string | null) => {
-    if (templateId === null) {
+  const handleSelectTemplate = (template: Template | null) => {
+    if (template === null) {
       onChange({ template: "", content: "" });
-      return;
-    }
-
-    const selectedTemplate = templates?.find((t) => t.id === templateId);
-    if (selectedTemplate) {
-      onChange({ 
-        template: templateId, 
-        content: selectedTemplate.content || "" 
+    } else {
+      onChange({
+        template: template.id,
+        content: template.content || "",
       });
     }
   };
@@ -84,67 +66,21 @@ export function StepContent({ data, onChange }: StepContentProps) {
 
       <Card className="border-border/60">
         <CardHeader>
-          <CardTitle className="text-base font-medium">Select Template</CardTitle>
+          <CardTitle className="text-base font-medium">Template</CardTitle>
         </CardHeader>
         <CardContent>
-          <ScrollArea className="h-[200px]">
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pr-4">
-              <button
-                onClick={() => handleSelectTemplate(null)}
-                className={cn(
-                  "flex flex-col items-center justify-center p-4 rounded-lg border-2 border-dashed transition-all h-[100px]",
-                  !data.template
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-muted-foreground/30 hover:border-muted-foreground/50 text-muted-foreground"
-                )}
-              >
-                <Plus className="h-5 w-5 mb-1" />
-                <span className="text-sm font-medium">Blank</span>
-              </button>
-
-              {templates?.map((template) => (
-                <button
-                  key={template.id}
-                  onClick={() => handleSelectTemplate(template.id)}
-                  className={cn(
-                    "flex flex-col items-start p-3 rounded-lg border transition-all h-[100px]",
-                    data.template === template.id
-                      ? "border-primary bg-primary/10"
-                      : "border-border hover:border-muted-foreground/50"
-                  )}
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <FileText className={cn(
-                      "h-4 w-4",
-                      data.template === template.id ? "text-primary" : "text-muted-foreground"
-                    )} />
-                    <span className={cn(
-                      "text-sm font-medium truncate",
-                      data.template === template.id && "text-primary"
-                    )}>
-                      {template.name}
-                    </span>
-                  </div>
-                  {template.description && (
-                    <p className="text-xs text-muted-foreground line-clamp-2 text-left">
-                      {template.description}
-                    </p>
-                  )}
-                  {template.category && (
-                    <Badge variant="secondary" className="mt-auto text-[10px] capitalize">
-                      {template.category}
-                    </Badge>
-                  )}
-                </button>
-              ))}
-
-              {templates && templates.length === 0 && (
-                <div className="col-span-2 flex items-center justify-center h-[100px] text-muted-foreground text-sm">
-                  No templates yet. Create one in Templates page.
-                </div>
-              )}
-            </div>
-          </ScrollArea>
+          <div className="flex items-center gap-4">
+            <TemplateBrowser
+              selectedTemplateId={data.template || null}
+              onSelect={handleSelectTemplate}
+            />
+            {data.template && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <FileText className="h-4 w-4" />
+                <span>Template selected</span>
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 
