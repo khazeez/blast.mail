@@ -1,4 +1,4 @@
-import { EmailBlock, blockLabels } from "./types";
+import { EmailBlock } from "./types";
 import { HeadingBlock } from "./blocks/HeadingBlock";
 import { TextBlock } from "./blocks/TextBlock";
 import { ImageBlock } from "./blocks/ImageBlock";
@@ -10,6 +10,7 @@ import { ColumnsBlock } from "./blocks/ColumnsBlock";
 import { FooterBlock } from "./blocks/FooterBlock";
 import { GripVertical, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface BlockRendererProps {
   block: EmailBlock;
@@ -17,7 +18,6 @@ interface BlockRendererProps {
   isDragging: boolean;
   onSelect: (id: string) => void;
   onDelete: (id: string) => void;
-  dragHandleProps?: React.HTMLAttributes<HTMLDivElement>;
 }
 
 const blockComponents: Record<string, React.FC<any>> = {
@@ -38,7 +38,6 @@ export function BlockRenderer({
   isDragging,
   onSelect,
   onDelete,
-  dragHandleProps,
 }: BlockRendererProps) {
   const Component = blockComponents[block.type];
 
@@ -52,41 +51,44 @@ export function BlockRenderer({
 
   return (
     <div
-      className={`group relative transition-all ${
-        isDragging ? "opacity-50" : ""
-      }`}
+      className={cn(
+        "group relative transition-all cursor-grab",
+        isDragging && "opacity-50 cursor-grabbing"
+      )}
       onClick={(e) => {
         e.stopPropagation();
         onSelect(block.id);
       }}
     >
+      <div className="absolute -left-8 top-0 bottom-0 flex flex-col items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="cursor-grab p-1 rounded hover:bg-muted bg-background shadow-sm border">
+          <GripVertical className="h-4 w-4 text-muted-foreground" />
+        </div>
+      </div>
+      
       {isSelected && (
-        <div className="absolute -left-10 top-0 bottom-0 flex flex-col items-center justify-center gap-1">
-          <div
-            {...dragHandleProps}
-            className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-muted"
-          >
-            <GripVertical className="h-4 w-4 text-muted-foreground" />
-          </div>
+        <div className="absolute -right-2 top-2 z-10">
           <Button
-            variant="ghost"
+            variant="destructive"
             size="icon"
-            className="h-6 w-6"
+            className="h-6 w-6 shadow-sm"
             onClick={(e) => {
               e.stopPropagation();
               onDelete(block.id);
             }}
           >
-            <Trash2 className="h-3 w-3 text-destructive" />
+            <Trash2 className="h-3 w-3" />
           </Button>
         </div>
       )}
+      
       <div
-        className={`rounded-md transition-all ${
+        className={cn(
+          "rounded-md transition-all p-3",
           isSelected
-            ? "ring-2 ring-primary ring-offset-2"
+            ? "ring-2 ring-primary ring-offset-2 bg-primary/5"
             : "hover:ring-1 hover:ring-muted-foreground/30"
-        }`}
+        )}
       >
         <Component {...block.props} />
       </div>

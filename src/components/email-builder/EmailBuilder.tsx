@@ -314,12 +314,15 @@ export function EmailBuilder({ content, onChange }: EmailBuilderProps) {
                     <p className="text-sm">Click a block type on the left to add content</p>
                   </div>
                 ) : (
-                  <div className="space-y-2 pl-8">
+                  <div className="space-y-1">
                     {blocks.map((block, index) => (
                       <div
                         key={block.id}
                         draggable
-                        onDragStart={() => handleDragStart(index)}
+                        onDragStart={(e) => {
+                          e.dataTransfer.effectAllowed = "move";
+                          handleDragStart(index);
+                        }}
                         onDragOver={(e) => handleDragOver(e, index)}
                         onDrop={() => handleDrop(index)}
                         onDragEnd={handleDragEnd}
