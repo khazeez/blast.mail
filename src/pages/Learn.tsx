@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { useAuth } from "@/hooks/use-auth";
 import {
   BookOpen, Play, Clock, ArrowRight, CheckCircle,
   ChevronRight, Star, Users, Zap, Target, BarChart3, Mail, Palette
@@ -104,14 +105,26 @@ const imageIcons: Record<string, React.ElementType> = {
 };
 
 const Learn = () => {
+  const { user } = useAuth();
   const enrolledCourses = courses.filter(c => c.enrolled);
   const otherCourses = courses.filter(c => !c.enrolled);
+
+  const userName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
+
+  const greeting = (() => {
+    const h = new Date().getHours();
+    if (h < 12) return "Selamat pagi";
+    if (h < 18) return "Selamat siang";
+    return "Selamat malam";
+  })();
 
   return (
     <DashboardLayout>
       <div className="space-y-8">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Learn</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {greeting}, {userName} 👋
+          </h1>
           <p className="text-sm text-muted-foreground">
             Tingkatkan skill email marketing Anda
           </p>
