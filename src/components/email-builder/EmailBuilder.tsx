@@ -1,4 +1,23 @@
 import { useState, useCallback } from "react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { EmailBlock, BlockType, defaultBlockProps } from "./types";
 import { BlockRenderer } from "./BlockRenderer";
 import { BlockSidebar } from "./BlockSidebar";
@@ -179,15 +198,63 @@ function generateHtmlFromBlocks(blocks: EmailBlock[]): string {
     .join("\n");
 }
 
+interface SortableBlockProps {
+  block: EmailBlock;
+  isSelected: boolean;
+  onSelect: (id: string) => void;
+  onDelete: (id: string) => void;
+}
+
+function SortableBlock({ block, isSelected, onSelect, onDelete }: SortableBlockProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: block.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes}>
+      <BlockRenderer
+        block={block}
+        isSelected={isSelected}
+        isDragging={isDragging}
+        onSelect={onSelect}
+        onDelete={onDelete}
+        dragListeners={listeners}
+      />
+    </div>
+  );
+}
+
 export function EmailBuilder({ content, onChange }: EmailBuilderProps) {
   const [blocks, setBlocks] = useState<EmailBlock[]>(() => parseBlocksFromHtml(content));
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
-  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"edit" | "preview" | "code">("edit");
   const [showSidebar, setShowSidebar] = useState(true);
 
   const selectedBlock = blocks.find((b) => b.id === selectedBlockId) || null;
+  const activeBlock = blocks.find((b) => b.id === activeId) || null;
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const updateHtml = useCallback(
     (newBlocks: EmailBlock[]) => {
@@ -235,35 +302,22 @@ export function EmailBuilder({ content, onChange }: EmailBuilderProps) {
     [blocks, selectedBlockId, updateHtml]
   );
 
-  const handleDragStart = (index: number) => {
-    setDraggedIndex(index);
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
   };
 
-  const handleDragOver = (e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    setDragOverIndex(index);
-  };
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
 
-  const handleDrop = (dropIndex: number) => {
-    if (draggedIndex === null || draggedIndex === dropIndex) {
-      setDraggedIndex(null);
-      setDragOverIndex(null);
-      return;
+    if (over && active.id !== over.id) {
+      const oldIndex = blocks.findIndex((b) => b.id === active.id);
+      const newIndex = blocks.findIndex((b) => b.id === over.id);
+      const newBlocks = arrayMove(blocks, oldIndex, newIndex);
+      setBlocks(newBlocks);
+      updateHtml(newBlocks);
     }
 
-    const newBlocks = [...blocks];
-    const [draggedBlock] = newBlocks.splice(draggedIndex, 1);
-    newBlocks.splice(dropIndex > draggedIndex ? dropIndex - 1 : dropIndex, 0, draggedBlock);
-
-    setBlocks(newBlocks);
-    setDraggedIndex(null);
-    setDragOverIndex(null);
-    updateHtml(newBlocks);
-  };
-
-  const handleDragEnd = () => {
-    setDraggedIndex(null);
-    setDragOverIndex(null);
+    setActiveId(null);
   };
 
   return (
@@ -314,33 +368,43 @@ export function EmailBuilder({ content, onChange }: EmailBuilderProps) {
                     <p className="text-sm">Click a block type on the left to add content</p>
                   </div>
                 ) : (
-                  <div className="space-y-1">
-                    {blocks.map((block, index) => (
-                      <div
-                        key={block.id}
-                        draggable
-                        onDragStart={(e) => {
-                          e.dataTransfer.effectAllowed = "move";
-                          handleDragStart(index);
-                        }}
-                        onDragOver={(e) => handleDragOver(e, index)}
-                        onDrop={() => handleDrop(index)}
-                        onDragEnd={handleDragEnd}
-                        className={`
-                          ${dragOverIndex === index && draggedIndex !== null && draggedIndex !== index ? "border-t-2 border-primary" : ""}
-                          ${draggedIndex === index ? "opacity-50" : ""}
-                        `}
-                      >
-                        <BlockRenderer
-                          block={block}
-                          isSelected={selectedBlockId === block.id}
-                          isDragging={draggedIndex === index}
-                          onSelect={setSelectedBlockId}
-                          onDelete={handleDeleteBlock}
-                        />
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
+                  >
+                    <SortableContext
+                      items={blocks.map((b) => b.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      <div className="space-y-1">
+                        {blocks.map((block) => (
+                          <SortableBlock
+                            key={block.id}
+                            block={block}
+                            isSelected={selectedBlockId === block.id}
+                            onSelect={setSelectedBlockId}
+                            onDelete={handleDeleteBlock}
+                          />
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    </SortableContext>
+
+                    <DragOverlay>
+                      {activeBlock ? (
+                        <div className="shadow-lg rounded-lg">
+                          <BlockRenderer
+                            block={activeBlock}
+                            isSelected={false}
+                            isDragging={false}
+                            onSelect={() => {}}
+                            onDelete={() => {}}
+                          />
+                        </div>
+                      ) : null}
+                    </DragOverlay>
+                  </DndContext>
                 )}
               </Card>
             )}

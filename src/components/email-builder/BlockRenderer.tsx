@@ -11,6 +11,7 @@ import { FooterBlock } from "./blocks/FooterBlock";
 import { GripVertical, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import type { SyntheticListenerMap } from "@dnd-kit/core/dist/hooks/utilities";
 
 interface BlockRendererProps {
   block: EmailBlock;
@@ -18,6 +19,7 @@ interface BlockRendererProps {
   isDragging: boolean;
   onSelect: (id: string) => void;
   onDelete: (id: string) => void;
+  dragListeners?: SyntheticListenerMap;
 }
 
 const blockComponents: Record<string, React.FC<any>> = {
@@ -38,6 +40,7 @@ export function BlockRenderer({
   isDragging,
   onSelect,
   onDelete,
+  dragListeners,
 }: BlockRendererProps) {
   const Component = blockComponents[block.type];
 
@@ -52,16 +55,19 @@ export function BlockRenderer({
   return (
     <div
       className={cn(
-        "group relative transition-all cursor-grab",
-        isDragging && "opacity-50 cursor-grabbing"
+        "group relative transition-all",
+        isDragging && "opacity-50"
       )}
       onClick={(e) => {
         e.stopPropagation();
         onSelect(block.id);
       }}
     >
-      <div className="absolute -left-8 top-0 bottom-0 flex flex-col items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        <div className="cursor-grab p-1 rounded hover:bg-muted bg-background shadow-sm border">
+      <div 
+        className="absolute -left-8 top-0 bottom-0 flex items-center opacity-0 group-hover:opacity-100 transition-opacity"
+        {...dragListeners}
+      >
+        <div className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-muted bg-background shadow-sm border">
           <GripVertical className="h-4 w-4 text-muted-foreground" />
         </div>
       </div>
