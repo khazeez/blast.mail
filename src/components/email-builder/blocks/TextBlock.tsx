@@ -13,8 +13,11 @@ export function TextBlock({
   };
 
   return (
-    <p className={sizes[fontSize]} style={{ textAlign: align, color }}>
-      {content}
+    <p 
+      className={sizes[fontSize]} 
+      style={{ textAlign: align, color, lineHeight: 1.6 }}
+    >
+      {content || "Write your text here..."}
     </p>
   );
 }

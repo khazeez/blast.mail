@@ -1,4 +1,4 @@
-import { EmailBlock, BlockType, defaultBlockProps } from "./types";
+import { EmailBlock } from "./types";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -32,42 +32,41 @@ export function BlockConfigPanel({ block, onUpdate }: BlockConfigPanelProps) {
   };
 
   return (
-    <ScrollArea className="h-full">
-      <div className="p-4 space-y-4">
-        <h3 className="font-medium text-sm capitalize">{block.type} Settings</h3>
-
+    <ScrollArea className="flex-1">
+      <div className="p-4 space-y-5">
         {block.type === "heading" && (
           <>
             <div className="space-y-2">
-              <Label>Content</Label>
+              <Label className="text-xs text-muted-foreground">Content</Label>
               <Input
                 value={block.props.content || ""}
                 onChange={(e) => handleChange("content", e.target.value)}
+                className="h-9"
               />
             </div>
             <div className="space-y-2">
-              <Label>Level</Label>
+              <Label className="text-xs text-muted-foreground">Level</Label>
               <Select
                 value={String(block.props.level || 2)}
                 onValueChange={(v) => handleChange("level", Number(v))}
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-9">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">H1</SelectItem>
-                  <SelectItem value="2">H2</SelectItem>
-                  <SelectItem value="3">H3</SelectItem>
+                  <SelectItem value="1">Heading 1</SelectItem>
+                  <SelectItem value="2">Heading 2</SelectItem>
+                  <SelectItem value="3">Heading 3</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Align</Label>
+              <Label className="text-xs text-muted-foreground">Alignment</Label>
               <Select
                 value={block.props.align || "left"}
                 onValueChange={(v) => handleChange("align", v)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-9">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -78,13 +77,20 @@ export function BlockConfigPanel({ block, onUpdate }: BlockConfigPanelProps) {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Color</Label>
-              <Input
-                type="color"
-                value={block.props.color || "#1a1a1a"}
-                onChange={(e) => handleChange("color", e.target.value)}
-                className="h-10"
-              />
+              <Label className="text-xs text-muted-foreground">Color</Label>
+              <div className="flex gap-2">
+                <Input
+                  type="color"
+                  value={block.props.color || "#1a1a1a"}
+                  onChange={(e) => handleChange("color", e.target.value)}
+                  className="w-12 h-9 p-1 cursor-pointer"
+                />
+                <Input
+                  value={block.props.color || "#1a1a1a"}
+                  onChange={(e) => handleChange("color", e.target.value)}
+                  className="flex-1 h-9 font-mono text-xs"
+                />
+              </div>
             </div>
           </>
         )}
@@ -92,36 +98,37 @@ export function BlockConfigPanel({ block, onUpdate }: BlockConfigPanelProps) {
         {block.type === "text" && (
           <>
             <div className="space-y-2">
-              <Label>Content</Label>
+              <Label className="text-xs text-muted-foreground">Content</Label>
               <Textarea
                 value={block.props.content || ""}
                 onChange={(e) => handleChange("content", e.target.value)}
                 rows={4}
+                className="resize-none"
               />
             </div>
             <div className="space-y-2">
-              <Label>Font Size</Label>
+              <Label className="text-xs text-muted-foreground">Font Size</Label>
               <Select
                 value={block.props.fontSize || "medium"}
                 onValueChange={(v) => handleChange("fontSize", v)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-9">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="small">Small</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="large">Large</SelectItem>
+                  <SelectItem value="small">Small (14px)</SelectItem>
+                  <SelectItem value="medium">Medium (16px)</SelectItem>
+                  <SelectItem value="large">Large (18px)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Align</Label>
+              <Label className="text-xs text-muted-foreground">Alignment</Label>
               <Select
                 value={block.props.align || "left"}
                 onValueChange={(v) => handleChange("align", v)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-9">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -132,13 +139,20 @@ export function BlockConfigPanel({ block, onUpdate }: BlockConfigPanelProps) {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Color</Label>
-              <Input
-                type="color"
-                value={block.props.color || "#4a4a4a"}
-                onChange={(e) => handleChange("color", e.target.value)}
-                className="h-10"
-              />
+              <Label className="text-xs text-muted-foreground">Color</Label>
+              <div className="flex gap-2">
+                <Input
+                  type="color"
+                  value={block.props.color || "#4a4a4a"}
+                  onChange={(e) => handleChange("color", e.target.value)}
+                  className="w-12 h-9 p-1 cursor-pointer"
+                />
+                <Input
+                  value={block.props.color || "#4a4a4a"}
+                  onChange={(e) => handleChange("color", e.target.value)}
+                  className="flex-1 h-9 font-mono text-xs"
+                />
+              </div>
             </div>
           </>
         )}
@@ -146,35 +160,39 @@ export function BlockConfigPanel({ block, onUpdate }: BlockConfigPanelProps) {
         {block.type === "image" && (
           <>
             <div className="space-y-2">
-              <Label>Image URL</Label>
+              <Label className="text-xs text-muted-foreground">Image URL</Label>
               <Input
                 value={block.props.src || ""}
                 onChange={(e) => handleChange("src", e.target.value)}
-                placeholder="https://..."
+                placeholder="https://example.com/image.jpg"
+                className="h-9"
               />
             </div>
             <div className="space-y-2">
-              <Label>Alt Text</Label>
+              <Label className="text-xs text-muted-foreground">Alt Text</Label>
               <Input
                 value={block.props.alt || ""}
                 onChange={(e) => handleChange("alt", e.target.value)}
+                placeholder="Image description"
+                className="h-9"
               />
             </div>
             <div className="space-y-2">
-              <Label>Link</Label>
+              <Label className="text-xs text-muted-foreground">Link (optional)</Label>
               <Input
                 value={block.props.link || ""}
                 onChange={(e) => handleChange("link", e.target.value)}
                 placeholder="https://..."
+                className="h-9"
               />
             </div>
             <div className="space-y-2">
-              <Label>Width</Label>
+              <Label className="text-xs text-muted-foreground">Width</Label>
               <Select
                 value={block.props.width || "100%"}
                 onValueChange={(v) => handleChange("width", v)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-9">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -186,12 +204,12 @@ export function BlockConfigPanel({ block, onUpdate }: BlockConfigPanelProps) {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Align</Label>
+              <Label className="text-xs text-muted-foreground">Alignment</Label>
               <Select
                 value={block.props.align || "center"}
                 onValueChange={(v) => handleChange("align", v)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-9">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -207,27 +225,29 @@ export function BlockConfigPanel({ block, onUpdate }: BlockConfigPanelProps) {
         {block.type === "button" && (
           <>
             <div className="space-y-2">
-              <Label>Button Text</Label>
+              <Label className="text-xs text-muted-foreground">Button Text</Label>
               <Input
                 value={block.props.text || ""}
                 onChange={(e) => handleChange("text", e.target.value)}
+                className="h-9"
               />
             </div>
             <div className="space-y-2">
-              <Label>Link</Label>
+              <Label className="text-xs text-muted-foreground">Link</Label>
               <Input
                 value={block.props.link || ""}
                 onChange={(e) => handleChange("link", e.target.value)}
                 placeholder="https://..."
+                className="h-9"
               />
             </div>
             <div className="space-y-2">
-              <Label>Align</Label>
+              <Label className="text-xs text-muted-foreground">Alignment</Label>
               <Select
                 value={block.props.align || "center"}
                 onValueChange={(v) => handleChange("align", v)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-9">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -238,30 +258,44 @@ export function BlockConfigPanel({ block, onUpdate }: BlockConfigPanelProps) {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Background Color</Label>
-              <Input
-                type="color"
-                value={block.props.backgroundColor || "#3b82f6"}
-                onChange={(e) => handleChange("backgroundColor", e.target.value)}
-                className="h-10"
-              />
+              <Label className="text-xs text-muted-foreground">Background Color</Label>
+              <div className="flex gap-2">
+                <Input
+                  type="color"
+                  value={block.props.backgroundColor || "#3b82f6"}
+                  onChange={(e) => handleChange("backgroundColor", e.target.value)}
+                  className="w-12 h-9 p-1 cursor-pointer"
+                />
+                <Input
+                  value={block.props.backgroundColor || "#3b82f6"}
+                  onChange={(e) => handleChange("backgroundColor", e.target.value)}
+                  className="flex-1 h-9 font-mono text-xs"
+                />
+              </div>
             </div>
             <div className="space-y-2">
-              <Label>Text Color</Label>
-              <Input
-                type="color"
-                value={block.props.textColor || "#ffffff"}
-                onChange={(e) => handleChange("textColor", e.target.value)}
-                className="h-10"
-              />
+              <Label className="text-xs text-muted-foreground">Text Color</Label>
+              <div className="flex gap-2">
+                <Input
+                  type="color"
+                  value={block.props.textColor || "#ffffff"}
+                  onChange={(e) => handleChange("textColor", e.target.value)}
+                  className="w-12 h-9 p-1 cursor-pointer"
+                />
+                <Input
+                  value={block.props.textColor || "#ffffff"}
+                  onChange={(e) => handleChange("textColor", e.target.value)}
+                  className="flex-1 h-9 font-mono text-xs"
+                />
+              </div>
             </div>
             <div className="space-y-2">
-              <Label>Border Radius: {block.props.borderRadius || 6}px</Label>
+              <Label className="text-xs text-muted-foreground">Border Radius: {block.props.borderRadius || 6}px</Label>
               <Slider
                 value={[block.props.borderRadius || 6]}
                 onValueChange={([v]) => handleChange("borderRadius", v)}
                 min={0}
-                max={20}
+                max={24}
                 step={1}
               />
             </div>
@@ -271,12 +305,12 @@ export function BlockConfigPanel({ block, onUpdate }: BlockConfigPanelProps) {
         {block.type === "divider" && (
           <>
             <div className="space-y-2">
-              <Label>Style</Label>
+              <Label className="text-xs text-muted-foreground">Style</Label>
               <Select
                 value={block.props.style || "solid"}
                 onValueChange={(v) => handleChange("style", v)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-9">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -287,16 +321,23 @@ export function BlockConfigPanel({ block, onUpdate }: BlockConfigPanelProps) {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Color</Label>
-              <Input
-                type="color"
-                value={block.props.color || "#e5e5e5"}
-                onChange={(e) => handleChange("color", e.target.value)}
-                className="h-10"
-              />
+              <Label className="text-xs text-muted-foreground">Color</Label>
+              <div className="flex gap-2">
+                <Input
+                  type="color"
+                  value={block.props.color || "#e5e5e5"}
+                  onChange={(e) => handleChange("color", e.target.value)}
+                  className="w-12 h-9 p-1 cursor-pointer"
+                />
+                <Input
+                  value={block.props.color || "#e5e5e5"}
+                  onChange={(e) => handleChange("color", e.target.value)}
+                  className="flex-1 h-9 font-mono text-xs"
+                />
+              </div>
             </div>
             <div className="space-y-2">
-              <Label>Thickness: {block.props.thickness || 1}px</Label>
+              <Label className="text-xs text-muted-foreground">Thickness: {block.props.thickness || 1}px</Label>
               <Slider
                 value={[block.props.thickness || 1]}
                 onValueChange={([v]) => handleChange("thickness", v)}
@@ -310,7 +351,7 @@ export function BlockConfigPanel({ block, onUpdate }: BlockConfigPanelProps) {
 
         {block.type === "spacer" && (
           <div className="space-y-2">
-            <Label>Height: {block.props.height || 20}px</Label>
+            <Label className="text-xs text-muted-foreground">Height: {block.props.height || 20}px</Label>
             <Slider
               value={[block.props.height || 20]}
               onValueChange={([v]) => handleChange("height", v)}
@@ -324,29 +365,31 @@ export function BlockConfigPanel({ block, onUpdate }: BlockConfigPanelProps) {
         {block.type === "footer" && (
           <>
             <div className="space-y-2">
-              <Label>Company Name</Label>
+              <Label className="text-xs text-muted-foreground">Company Name</Label>
               <Input
                 value={block.props.companyName || ""}
                 onChange={(e) => handleChange("companyName", e.target.value)}
+                className="h-9"
               />
             </div>
             <div className="space-y-2">
-              <Label>Address</Label>
+              <Label className="text-xs text-muted-foreground">Address</Label>
               <Textarea
                 value={block.props.address || ""}
                 onChange={(e) => handleChange("address", e.target.value)}
                 rows={2}
+                className="resize-none"
               />
             </div>
-            <div className="flex items-center justify-between">
-              <Label>Unsubscribe Link</Label>
+            <div className="flex items-center justify-between py-2">
+              <Label className="text-xs">Unsubscribe Link</Label>
               <Switch
                 checked={block.props.unsubscribeLink ?? true}
                 onCheckedChange={(v) => handleChange("unsubscribeLink", v)}
               />
             </div>
-            <div className="flex items-center justify-between">
-              <Label>Social Links</Label>
+            <div className="flex items-center justify-between py-2">
+              <Label className="text-xs">Social Links</Label>
               <Switch
                 checked={block.props.socialLinks ?? false}
                 onCheckedChange={(v) => handleChange("socialLinks", v)}
