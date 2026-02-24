@@ -267,9 +267,9 @@ export function EmailBuilder({ content, onChange }: EmailBuilderProps) {
   };
 
   return (
-    <div className="flex h-[600px] border rounded-lg overflow-hidden">
+    <div className="flex h-[700px] border rounded-lg overflow-hidden">
       {showSidebar && (
-        <div className="w-48 border-r bg-muted/30">
+        <div className="w-56 border-r bg-muted/30">
           <BlockSidebar onAddBlock={handleAddBlock} />
         </div>
       )}
@@ -307,7 +307,7 @@ export function EmailBuilder({ content, onChange }: EmailBuilderProps) {
             onClick={() => setSelectedBlockId(null)}
           >
             {activeTab === "edit" && (
-              <Card className="p-6 max-w-2xl mx-auto">
+              <Card className="p-6 max-w-3xl mx-auto">
                 {blocks.length === 0 ? (
                   <div className="text-center py-12 text-muted-foreground">
                     <p className="mb-2">No blocks yet</p>
@@ -343,7 +343,7 @@ export function EmailBuilder({ content, onChange }: EmailBuilderProps) {
             )}
 
             {activeTab === "preview" && (
-              <Card className="p-6 max-w-2xl mx-auto">
+              <Card className="p-6 max-w-3xl mx-auto">
                 <div
                   className="prose prose-sm max-w-none"
                   dangerouslySetInnerHTML={{ __html: generateHtmlFromBlocks(blocks) }}
@@ -352,7 +352,7 @@ export function EmailBuilder({ content, onChange }: EmailBuilderProps) {
             )}
 
             {activeTab === "code" && (
-              <Card className="p-4 max-w-2xl mx-auto">
+              <Card className="p-4 max-w-3xl mx-auto">
                 <pre className="text-xs overflow-auto bg-muted p-4 rounded">
                   <code>{generateHtmlFromBlocks(blocks)}</code>
                 </pre>
@@ -361,7 +361,7 @@ export function EmailBuilder({ content, onChange }: EmailBuilderProps) {
           </div>
 
           {selectedBlock && activeTab === "edit" && (
-            <div className="w-64 border-l bg-muted/30">
+            <div className="w-72 border-l bg-muted/30">
               <BlockConfigPanel
                 block={selectedBlock}
                 onUpdate={handleUpdateBlock}
