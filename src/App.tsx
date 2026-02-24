@@ -22,6 +22,8 @@ import Tutorial from "./pages/Tutorial";
 import WebhookDocs from "./pages/WebhookDocs";
 import Pricing from "./pages/Pricing";
 import Billing from "./pages/Billing";
+import Automations from "./pages/Automations";
+import AutomationEditor from "./pages/AutomationEditor";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +53,9 @@ const App = () => (
               <Route path="/settings/domain" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               <Route path="/tutorial" element={<ProtectedRoute><Tutorial /></ProtectedRoute>} />
               <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
+              <Route path="/automations" element={<ProtectedRoute><Automations /></ProtectedRoute>} />
+              <Route path="/automations/new" element={<ProtectedRoute><AutomationEditor /></ProtectedRoute>} />
+              <Route path="/automations/:id" element={<ProtectedRoute><AutomationEditor /></ProtectedRoute>} />
               <Route path="/integrations/webhook-docs" element={<ProtectedRoute><WebhookDocs /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>

@@ -10,6 +10,7 @@ import {
   BookOpen,
   ChevronDown,
   CreditCard,
+  Zap,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useI18n } from "@/hooks/use-i18n";
@@ -37,6 +38,7 @@ import { useSubscription } from "@/hooks/use-subscription";
 const mainNav = [
   { titleKey: "nav.dashboard", url: "/", icon: LayoutDashboard },
   { titleKey: "nav.campaigns", url: "/campaigns", icon: Send },
+  { titleKey: "nav.automations", url: "/automations", icon: Zap },
   { titleKey: "nav.contacts", url: "/contacts", icon: Users },
   { titleKey: "nav.templates", url: "/templates", icon: FileText },
 ];
