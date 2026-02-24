@@ -83,12 +83,12 @@ export const defaultBlockProps: Record<BlockType, Record<string, any>> = {
     content: "Heading",
     level: 2,
     align: "left",
-    color: "#1a1a1a",
+    color: "#ffffff",
   },
   text: {
     content: "Write your text here...",
     align: "left",
-    color: "#4a4a4a",
+    color: "#ffffff",
     fontSize: "medium",
   },
   image: {

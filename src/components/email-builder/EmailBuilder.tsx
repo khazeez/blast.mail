@@ -361,9 +361,9 @@ export function EmailBuilder({ content, onChange }: EmailBuilderProps) {
             onClick={() => setSelectedBlockId(null)}
           >
             {activeTab === "edit" && (
-              <Card className="p-6 max-w-3xl mx-auto">
+              <Card className="p-8 max-w-3xl mx-auto bg-slate-900 border-slate-700">
                 {blocks.length === 0 ? (
-                  <div className="text-center py-12 text-muted-foreground">
+                  <div className="text-center py-12 text-slate-400">
                     <p className="mb-2">No blocks yet</p>
                     <p className="text-sm">Click a block type on the left to add content</p>
                   </div>
@@ -378,7 +378,7 @@ export function EmailBuilder({ content, onChange }: EmailBuilderProps) {
                       items={blocks.map((b) => b.id)}
                       strategy={verticalListSortingStrategy}
                     >
-                      <div className="space-y-1">
+                      <div className="space-y-4">
                         {blocks.map((block) => (
                           <SortableBlock
                             key={block.id}
@@ -393,7 +393,7 @@ export function EmailBuilder({ content, onChange }: EmailBuilderProps) {
 
                     <DragOverlay>
                       {activeBlock ? (
-                        <div className="shadow-lg rounded-lg">
+                        <div className="shadow-2xl rounded-lg">
                           <BlockRenderer
                             block={activeBlock}
                             isSelected={false}

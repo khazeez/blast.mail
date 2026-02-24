@@ -67,8 +67,8 @@ export function BlockRenderer({
         className="absolute -left-8 top-0 bottom-0 flex items-center opacity-0 group-hover:opacity-100 transition-opacity"
         {...dragListeners}
       >
-        <div className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-muted bg-background shadow-sm border">
-          <GripVertical className="h-4 w-4 text-muted-foreground" />
+        <div className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-slate-600 bg-slate-700 shadow-sm border border-slate-600">
+          <GripVertical className="h-4 w-4 text-slate-300" />
         </div>
       </div>
       
@@ -90,10 +90,10 @@ export function BlockRenderer({
       
       <div
         className={cn(
-          "rounded-md transition-all p-3",
+          "rounded-lg transition-all p-4 bg-slate-800/50 border border-slate-700/50",
           isSelected
-            ? "ring-2 ring-primary ring-offset-2 bg-primary/5"
-            : "hover:ring-1 hover:ring-muted-foreground/30"
+            ? "ring-2 ring-primary ring-offset-2 ring-offset-slate-900"
+            : "hover:border-slate-600"
         )}
       >
         <Component {...block.props} />
