@@ -8,9 +8,6 @@ import {
   Mail,
   Plug,
   BookOpen,
-  User,
-  MailCheck,
-  Globe,
   ChevronDown,
   CreditCard,
 } from "lucide-react";
@@ -52,9 +49,9 @@ const secondaryNav = [
 ];
 
 const settingsSubNav = [
-  { title: "Profile", url: "/settings/profile", icon: User },
-  { title: "Sender Config", url: "/settings/sender", icon: MailCheck },
-  { title: "Custom Domain", url: "/settings/domain", icon: Globe },
+  { title: "Profile", url: "/settings/profile" },
+  { title: "Sender Config", url: "/settings/sender" },
+  { title: "Custom Domain", url: "/settings/domain" },
 ];
 
 export function AppSidebar() {
@@ -138,7 +135,7 @@ export function AppSidebar() {
                               className="flex items-center gap-2 text-sm text-sidebar-foreground transition-colors hover:text-sidebar-accent-foreground"
                               activeClassName="text-sidebar-accent-foreground font-medium"
                             >
-                              <sub.icon className="h-3.5 w-3.5" />
+                              <span className="text-muted-foreground">•</span>
                               <span>{sub.title}</span>
                             </NavLink>
                           </SidebarMenuSubButton>
