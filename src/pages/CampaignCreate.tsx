@@ -95,7 +95,7 @@ const CampaignCreate = () => {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto max-w-3xl space-y-8">
+      <div className="mx-auto max-w-5xl space-y-8">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={() => navigate("/campaigns")}>
             <ArrowLeft className="h-4 w-4" />
