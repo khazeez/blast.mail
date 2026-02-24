@@ -124,17 +124,17 @@ const Pricing = () => {
       {/* Navbar */}
       <nav className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/landing")}>
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/")}>
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
               <Mail className="h-5 w-5 text-primary-foreground" />
             </div>
             <span className="text-xl font-bold tracking-tight">MailBlast</span>
           </div>
           <div className="hidden items-center gap-8 md:flex">
-            <a href="/landing#solutions" className="text-sm text-muted-foreground transition hover:text-foreground">Solutions</a>
-            <a href="/landing#features" className="text-sm text-muted-foreground transition hover:text-foreground">Fitur</a>
+            <a href="/#solutions" className="text-sm text-muted-foreground transition hover:text-foreground">Solutions</a>
+            <a href="/#features" className="text-sm text-muted-foreground transition hover:text-foreground">Fitur</a>
             <span className="text-sm font-medium text-foreground">Harga</span>
-            <a href="/landing#faq" className="text-sm text-muted-foreground transition hover:text-foreground">FAQ</a>
+            <a href="/#faq" className="text-sm text-muted-foreground transition hover:text-foreground">FAQ</a>
           </div>
           <div className="flex gap-3">
             <Button variant="ghost" size="sm" onClick={() => navigate("/login")}>Masuk</Button>
@@ -352,16 +352,16 @@ const Pricing = () => {
       <footer className="border-t border-border/60 bg-card py-12">
         <div className="mx-auto max-w-7xl px-6">
           <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
-            <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/landing")}>
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/")}>
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
                 <Mail className="h-4 w-4 text-primary-foreground" />
               </div>
               <span className="text-lg font-bold">MailBlast</span>
             </div>
             <div className="flex flex-wrap gap-6 text-sm text-muted-foreground">
-              <a href="/landing" className="transition hover:text-foreground">Home</a>
-              <a href="/landing#solutions" className="transition hover:text-foreground">Solutions</a>
-              <a href="/landing#faq" className="transition hover:text-foreground">FAQ</a>
+              <a href="/" className="transition hover:text-foreground">Home</a>
+              <a href="/#solutions" className="transition hover:text-foreground">Solutions</a>
+              <a href="/#faq" className="transition hover:text-foreground">FAQ</a>
             </div>
           </div>
           <p className="mt-8 text-center text-xs text-muted-foreground">

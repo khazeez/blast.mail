@@ -8,6 +8,7 @@ interface Translations {
 
 const translations: Translations = {
   // Sidebar
+  "nav.learn": { en: "Learn", id: "Belajar" },
   "nav.dashboard": { en: "Dashboard", id: "Dasbor" },
   "nav.campaigns": { en: "Campaigns", id: "Kampanye" },
   "nav.contacts": { en: "Contacts", id: "Kontak" },
@@ -15,8 +16,9 @@ const translations: Translations = {
   "nav.analytics": { en: "Analytics", id: "Analitik" },
   "nav.settings": { en: "Settings", id: "Pengaturan" },
   "nav.integrations": { en: "Integrations", id: "Integrasi" },
-  "nav.tutorial": { en: "Tutorial", id: "Panduan" },
   "nav.billing": { en: "Billing", id: "Billing" },
+  "nav.automations": { en: "Automation", id: "Otomasi" },
+  "nav.automationWorkflow": { en: "Automation Workflow", id: "Alur Otomasi" },
 
   // Dashboard
   "dashboard.title": { en: "Dashboard", id: "Dasbor" },

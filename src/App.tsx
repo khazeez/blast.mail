@@ -18,7 +18,7 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Landing from "./pages/Landing";
 import Integrations from "./pages/Integrations";
-import Tutorial from "./pages/Tutorial";
+import Learn from "./pages/Learn";
 import WebhookDocs from "./pages/WebhookDocs";
 import Pricing from "./pages/Pricing";
 import Billing from "./pages/Billing";
@@ -36,10 +36,10 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
-              <Route path="/landing" element={<Landing />} />
+              <Route path="/" element={<Landing />} />
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/login" element={<Auth />} />
-              <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+              <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
               <Route path="/contacts" element={<ProtectedRoute><Contacts /></ProtectedRoute>} />
               <Route path="/campaigns" element={<ProtectedRoute><Campaigns /></ProtectedRoute>} />
               <Route path="/campaigns/new" element={<ProtectedRoute><CampaignCreate /></ProtectedRoute>} />
@@ -51,7 +51,7 @@ const App = () => (
               <Route path="/settings/profile" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               <Route path="/settings/sender" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               <Route path="/settings/domain" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-              <Route path="/tutorial" element={<ProtectedRoute><Tutorial /></ProtectedRoute>} />
+              <Route path="/learn" element={<ProtectedRoute><Learn /></ProtectedRoute>} />
               <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
               <Route path="/automations" element={<ProtectedRoute><Automations /></ProtectedRoute>} />
               <Route path="/automations/new" element={<ProtectedRoute><AutomationEditor /></ProtectedRoute>} />

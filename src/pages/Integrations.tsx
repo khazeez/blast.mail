@@ -3,12 +3,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Facebook, Globe, Smartphone, MessageSquare, ExternalLink, Settings2, Sheet, Webhook } from "lucide-react";
+import { Facebook, Globe, Smartphone, MessageSquare, ExternalLink, Settings2, Sheet, Webhook, Zap } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { GoogleSheetsDialog } from "@/components/integrations/GoogleSheetsDialog";
 import { WebhooksDialog } from "@/components/integrations/WebhooksDialog";
+import { N8nDialog } from "@/components/integrations/N8nDialog";
 
 interface Integration {
   id: string;
@@ -33,6 +34,14 @@ const integrations: Integration[] = [
     icon: Webhook,
     name: "Webhooks",
     description: "Kirim notifikasi real-time ke URL Anda saat event terjadi (kontak baru, campaign terkirim, dll).",
+    status: "real",
+    color: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
+  },
+  {
+    id: "n8n",
+    icon: Zap,
+    name: "n8n",
+    description: "Connect n8n untuk membuat automasi email visual dengan workflow builder yang powerful.",
     status: "real",
     color: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
   },
@@ -74,11 +83,13 @@ const Integrations = () => {
   const [enabled, setEnabled] = useState<Record<string, boolean>>({});
   const [sheetsOpen, setSheetsOpen] = useState(false);
   const [webhooksOpen, setWebhooksOpen] = useState(false);
+  const [n8nOpen, setN8nOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleToggle = (id: string) => {
     if (id === "google-sheets") { setSheetsOpen(true); return; }
     if (id === "webhooks") { setWebhooksOpen(true); return; }
+    if (id === "n8n") { setN8nOpen(true); return; }
     setEnabled((prev) => {
       const next = !prev[id];
       toast.info(
@@ -93,6 +104,7 @@ const Integrations = () => {
   const handleConfigure = (id: string) => {
     if (id === "google-sheets") { setSheetsOpen(true); return; }
     if (id === "webhooks") { setWebhooksOpen(true); return; }
+    if (id === "n8n") { setN8nOpen(true); return; }
     toast.info("Konfigurasi detail segera hadir di update berikutnya!");
   };
 
@@ -203,6 +215,7 @@ const Integrations = () => {
 
       <GoogleSheetsDialog open={sheetsOpen} onOpenChange={setSheetsOpen} />
       <WebhooksDialog open={webhooksOpen} onOpenChange={setWebhooksOpen} />
+      <N8nDialog open={n8nOpen} onOpenChange={setN8nOpen} />
     </DashboardLayout>
   );
 };

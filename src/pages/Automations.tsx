@@ -3,9 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
   Plus, Zap, Play, Pause, Mail, UserPlus, Clock, Tag, 
-  MousePointer, MoreVertical, Edit, Trash2, Copy
+  MousePointer, MoreVertical, Edit, Trash2, Copy, ExternalLink, CheckCircle2
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -15,6 +16,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { N8nDialog } from "@/components/integrations/N8nDialog";
 
 interface Automation {
   id: string;
@@ -97,6 +99,8 @@ const statusColors: Record<string, string> = {
 const Automations = () => {
   const navigate = useNavigate();
   const [automations, setAutomations] = useState(mockAutomations);
+  const [n8nConnected, setN8nConnected] = useState(false);
+  const [n8nOpen, setN8nOpen] = useState(false);
 
   const toggleStatus = (id: string) => {
     setAutomations(automations.map(a => 
@@ -116,11 +120,58 @@ const Automations = () => {
               Create automated email workflows to engage your audience
             </p>
           </div>
-          <Button className="gap-2" onClick={() => navigate("/automations/new")}>
+          <Button className="gap-2" onClick={() => n8nConnected ? navigate("/automations/new") : setN8nOpen(true)}>
             <Plus className="h-4 w-4" />
             Create Automation
           </Button>
         </div>
+
+        {/* n8n Connection Banner */}
+        {!n8nConnected && (
+          <Alert className="border-orange-200 bg-orange-50 dark:bg-orange-950/20 dark:border-orange-900">
+            <Zap className="h-4 w-4 text-orange-600" />
+            <AlertDescription className="flex items-center justify-between">
+              <div>
+                <span className="font-medium">Connect n8n</span>
+                <span className="text-muted-foreground ml-2">
+                  — Automation powered by n8n workflow builder. Connect to create workflows.
+                </span>
+              </div>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="ml-4 gap-2"
+                onClick={() => setN8nOpen(true)}
+              >
+                <Zap className="h-4 w-4" />
+                Connect n8n
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {n8nConnected && (
+          <Alert className="border-green-200 bg-green-50 dark:bg-green-950/20 dark:border-green-900">
+            <CheckCircle2 className="h-4 w-4 text-green-600" />
+            <AlertDescription className="flex items-center justify-between">
+              <div>
+                <span className="font-medium text-green-700 dark:text-green-400">n8n Connected</span>
+                <span className="text-muted-foreground ml-2">
+                  — You can create and manage email automation workflows.
+                </span>
+              </div>
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                className="ml-4 gap-2"
+                onClick={() => window.open("https://n8n.io", "_blank")}
+              >
+                <ExternalLink className="h-4 w-4" />
+                Open n8n
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* Stats */}
         <div className="grid gap-4 md:grid-cols-4">
@@ -267,6 +318,14 @@ const Automations = () => {
           })}
         </div>
       </div>
+
+      <N8nDialog 
+        open={n8nOpen} 
+        onOpenChange={(open) => {
+          setN8nOpen(open);
+          if (!open) setN8nConnected(true);
+        }} 
+      />
     </DashboardLayout>
   );
 };

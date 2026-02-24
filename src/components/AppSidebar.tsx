@@ -36,17 +36,20 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useSubscription } from "@/hooks/use-subscription";
 
 const mainNav = [
-  { titleKey: "nav.dashboard", url: "/", icon: LayoutDashboard },
+  { titleKey: "nav.learn", url: "/learn", icon: BookOpen },
+  { titleKey: "nav.dashboard", url: "/dashboard", icon: LayoutDashboard },
   { titleKey: "nav.campaigns", url: "/campaigns", icon: Send },
-  { titleKey: "nav.automations", url: "/automations", icon: Zap },
   { titleKey: "nav.contacts", url: "/contacts", icon: Users },
   { titleKey: "nav.templates", url: "/templates", icon: FileText },
 ];
 
-const secondaryNav = [
+const automationNav = [
+  { titleKey: "nav.automations", url: "/automations", icon: Zap },
   { titleKey: "nav.integrations", url: "/integrations", icon: Plug },
+];
+
+const secondaryNav = [
   { titleKey: "nav.analytics", url: "/analytics", icon: BarChart3 },
-  { titleKey: "nav.tutorial", url: "/tutorial", icon: BookOpen },
   { titleKey: "nav.billing", url: "/billing", icon: CreditCard },
 ];
 
@@ -105,6 +108,17 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="gap-0.5">{renderItems(mainNav)}</SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <Separator className="mx-3 w-auto" />
+
+        <SidebarGroup className="py-2">
+          <SidebarGroupLabel className="px-3 mb-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+            {t("nav.automationWorkflow")}
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu className="gap-0.5">{renderItems(automationNav)}</SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
