@@ -2,7 +2,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { EmailBuilder } from "@/components/email-builder";
 import { RichTextEditor } from "@/components/campaigns/RichTextEditor";
+import { MousePointer2, Code } from "lucide-react";
 import type { CampaignData } from "@/pages/CampaignCreate";
 
 interface StepContentProps {
@@ -75,10 +78,30 @@ export function StepContent({ data, onChange }: StepContentProps) {
           <CardTitle className="text-base font-medium">Email Body</CardTitle>
         </CardHeader>
         <CardContent>
-          <RichTextEditor
-            content={data.content}
-            onChange={(html) => onChange({ content: html })}
-          />
+          <Tabs defaultValue="builder" className="w-full">
+            <TabsList className="mb-4">
+              <TabsTrigger value="builder" className="gap-2">
+                <MousePointer2 className="h-4 w-4" />
+                Drag & Drop
+              </TabsTrigger>
+              <TabsTrigger value="html" className="gap-2">
+                <Code className="h-4 w-4" />
+                HTML Editor
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="builder">
+              <EmailBuilder
+                content={data.content}
+                onChange={(html) => onChange({ content: html })}
+              />
+            </TabsContent>
+            <TabsContent value="html">
+              <RichTextEditor
+                content={data.content}
+                onChange={(html) => onChange({ content: html })}
+              />
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </div>
