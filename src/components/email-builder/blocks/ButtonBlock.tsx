@@ -12,15 +12,14 @@ export function ButtonBlock({
     <div style={{ textAlign: align }}>
       <a
         href={link || "#"}
-        className="inline-block px-6 py-3 font-medium no-underline transition-opacity hover:opacity-90"
+        className="inline-block px-6 py-3 font-medium no-underline"
         style={{
           backgroundColor,
           color: textColor,
           borderRadius: `${borderRadius}px`,
         }}
-        onClick={(e) => e.preventDefault()}
       >
-        {text || "Click Here"}
+        {text}
       </a>
     </div>
   );

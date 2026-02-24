@@ -15,10 +15,10 @@ export function HeadingBlock({
 
   return (
     <Tag
-      className={`font-bold ${sizes[level]} leading-tight`}
+      className={`font-bold ${sizes[level]}`}
       style={{ textAlign: align, color }}
     >
-      {content || "Heading"}
+      {content}
     </Tag>
   );
 }

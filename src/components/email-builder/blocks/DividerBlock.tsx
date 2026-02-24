@@ -7,7 +7,7 @@ export function DividerBlock({ style, color, thickness }: DividerBlockProps) {
         borderStyle: style,
         borderColor: color,
         borderWidth: `${thickness}px 0 0 0`,
-        margin: "8px 0",
+        margin: "16px 0",
       }}
     />
   );

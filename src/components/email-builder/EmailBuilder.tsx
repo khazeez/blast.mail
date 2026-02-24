@@ -3,11 +3,10 @@ import { EmailBlock, BlockType, defaultBlockProps } from "./types";
 import { BlockRenderer } from "./BlockRenderer";
 import { BlockSidebar } from "./BlockSidebar";
 import { BlockConfigPanel } from "./BlockConfigPanel";
+import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Eye, Code, Settings, PanelLeftClose, PanelLeft } from "lucide-react";
+import { Eye, Code, Settings, PanelLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
 
 interface EmailBuilderProps {
   content: string;
@@ -268,115 +267,101 @@ export function EmailBuilder({ content, onChange }: EmailBuilderProps) {
   };
 
   return (
-    <div className="flex h-[500px] border rounded-lg overflow-hidden bg-background shadow-sm">
+    <div className="flex h-[600px] border rounded-lg overflow-hidden">
       {showSidebar && (
-        <div className="w-52 border-r bg-slate-50/80 flex flex-col">
-          <div className="px-4 py-3 border-b bg-white">
-            <h3 className="font-semibold text-sm">Blocks</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">Click to add</p>
-          </div>
+        <div className="w-48 border-r bg-muted/30">
           <BlockSidebar onAddBlock={handleAddBlock} />
         </div>
       )}
 
-      <div className="flex-1 flex flex-col min-w-0">
-        <div className="flex items-center justify-between border-b px-4 py-2 bg-white">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-2 text-muted-foreground hover:text-foreground"
-            onClick={() => setShowSidebar(!showSidebar)}
-          >
-            {showSidebar ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeft className="h-4 w-4" />}
-            {showSidebar ? "Hide" : "Show"} Sidebar
-          </Button>
+      <div className="flex-1 flex flex-col">
+        <div className="flex items-center justify-between border-b px-3 py-2 bg-muted/30">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setShowSidebar(!showSidebar)}
+            >
+              <PanelLeft className="h-4 w-4" />
+            </Button>
+          </div>
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
-            <TabsList className="h-8 bg-slate-100">
-              <TabsTrigger value="edit" className="text-xs px-4 data-[state=active]:bg-white">
-                <Settings className="h-3.5 w-3.5 mr-1.5" /> Edit
+            <TabsList className="h-8">
+              <TabsTrigger value="edit" className="text-xs px-3">
+                <Settings className="h-3 w-3 mr-1" /> Edit
               </TabsTrigger>
-              <TabsTrigger value="preview" className="text-xs px-4 data-[state=active]:bg-white">
-                <Eye className="h-3.5 w-3.5 mr-1.5" /> Preview
+              <TabsTrigger value="preview" className="text-xs px-3">
+                <Eye className="h-3 w-3 mr-1" /> Preview
               </TabsTrigger>
-              <TabsTrigger value="code" className="text-xs px-4 data-[state=active]:bg-white">
-                <Code className="h-3.5 w-3.5 mr-1.5" /> Code
+              <TabsTrigger value="code" className="text-xs px-3">
+                <Code className="h-3 w-3 mr-1" /> Code
               </TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
 
         <div className="flex-1 flex overflow-hidden">
-          <ScrollArea className="flex-1">
-            <div
-              className="p-6 min-h-full"
-              onClick={() => setSelectedBlockId(null)}
-            >
-              {activeTab === "edit" && (
-                <div className="max-w-xl mx-auto bg-white rounded-lg border shadow-sm">
-                  {blocks.length === 0 ? (
-                    <div className="text-center py-16 px-8">
-                      <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
-                        <PanelLeft className="h-8 w-8 text-slate-400" />
+          <div
+            className="flex-1 overflow-auto p-4 bg-background"
+            onClick={() => setSelectedBlockId(null)}
+          >
+            {activeTab === "edit" && (
+              <Card className="p-6 max-w-2xl mx-auto">
+                {blocks.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <p className="mb-2">No blocks yet</p>
+                    <p className="text-sm">Click a block type on the left to add content</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2 pl-8">
+                    {blocks.map((block, index) => (
+                      <div
+                        key={block.id}
+                        draggable
+                        onDragStart={() => handleDragStart(index)}
+                        onDragOver={(e) => handleDragOver(e, index)}
+                        onDrop={() => handleDrop(index)}
+                        onDragEnd={handleDragEnd}
+                        className={`
+                          ${dragOverIndex === index && draggedIndex !== null && draggedIndex !== index ? "border-t-2 border-primary" : ""}
+                          ${draggedIndex === index ? "opacity-50" : ""}
+                        `}
+                      >
+                        <BlockRenderer
+                          block={block}
+                          isSelected={selectedBlockId === block.id}
+                          isDragging={draggedIndex === index}
+                          onSelect={setSelectedBlockId}
+                          onDelete={handleDeleteBlock}
+                        />
                       </div>
-                      <p className="font-medium text-foreground mb-1">No blocks yet</p>
-                      <p className="text-sm text-muted-foreground">
-                        Click a block type on the sidebar to start building your email
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="p-4 space-y-1">
-                      {blocks.map((block, index) => (
-                        <div
-                          key={block.id}
-                          draggable
-                          onDragStart={() => handleDragStart(index)}
-                          onDragOver={(e) => handleDragOver(e, index)}
-                          onDrop={() => handleDrop(index)}
-                          onDragEnd={handleDragEnd}
-                          className={cn(
-                            "relative",
-                            dragOverIndex === index && draggedIndex !== null && draggedIndex !== index && "border-t-2 border-primary",
-                            draggedIndex === index && "opacity-40"
-                          )}
-                        >
-                          <BlockRenderer
-                            block={block}
-                            isSelected={selectedBlockId === block.id}
-                            isDragging={draggedIndex === index}
-                            onSelect={setSelectedBlockId}
-                            onDelete={handleDeleteBlock}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
+                    ))}
+                  </div>
+                )}
+              </Card>
+            )}
 
-              {activeTab === "preview" && (
-                <div className="max-w-xl mx-auto bg-white rounded-lg border shadow-sm p-6">
-                  <div
-                    className="prose prose-sm max-w-none"
-                    dangerouslySetInnerHTML={{ __html: generateHtmlFromBlocks(blocks) }}
-                  />
-                </div>
-              )}
+            {activeTab === "preview" && (
+              <Card className="p-6 max-w-2xl mx-auto">
+                <div
+                  className="prose prose-sm max-w-none"
+                  dangerouslySetInnerHTML={{ __html: generateHtmlFromBlocks(blocks) }}
+                />
+              </Card>
+            )}
 
-              {activeTab === "code" && (
-                <div className="max-w-xl mx-auto bg-white rounded-lg border shadow-sm p-4">
-                  <pre className="text-xs overflow-auto bg-slate-900 text-slate-100 p-4 rounded-lg">
-                    <code>{generateHtmlFromBlocks(blocks)}</code>
-                  </pre>
-                </div>
-              )}
-            </div>
-          </ScrollArea>
+            {activeTab === "code" && (
+              <Card className="p-4 max-w-2xl mx-auto">
+                <pre className="text-xs overflow-auto bg-muted p-4 rounded">
+                  <code>{generateHtmlFromBlocks(blocks)}</code>
+                </pre>
+              </Card>
+            )}
+          </div>
 
           {selectedBlock && activeTab === "edit" && (
-            <div className="w-72 border-l bg-slate-50/80 flex flex-col">
-              <div className="px-4 py-3 border-b bg-white">
-                <h3 className="font-semibold text-sm capitalize">{selectedBlock.type} Settings</h3>
-              </div>
+            <div className="w-64 border-l bg-muted/30">
               <BlockConfigPanel
                 block={selectedBlock}
                 onUpdate={handleUpdateBlock}
