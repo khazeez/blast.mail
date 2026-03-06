@@ -82,9 +82,9 @@
     --sidebar-foreground: 220 10% 70%;
     --sidebar-primary: 226 62% 56%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 226 60% 96%;
-    --sidebar-accent-foreground: 226 62% 46%;
-    --sidebar-border: 220 16% 20%;
+    --sidebar-accent: 224 16% 18%;
+    --sidebar-accent-foreground: 220 16% 92%;
+    --sidebar-border: 224 16% 12%;
     --sidebar-ring: 226 62% 56%;
 
     --success: 152 56% 46%;
