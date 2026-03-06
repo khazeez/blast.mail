@@ -3,7 +3,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Globe, CheckCircle2, AlertCircle, Loader2, Trash2 } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Globe, CheckCircle2, AlertCircle, Loader2, Trash2, Copy } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -18,8 +19,10 @@ interface CustomDomainCardProps {
 export function CustomDomainCard({ customDomain, domainVerified, verificationToken }: CustomDomainCardProps) {
   const queryClient = useQueryClient();
   const [domainInput, setDomainInput] = useState("");
+  const [localDkimTokens, setLocalDkimTokens] = useState<string[]>([]);
+  const [localDomain, setLocalDomain] = useState<string | null>(null);
 
-  const dkimTokens = (() => {
+  const parsedTokens = (() => {
     try {
       const parsed = JSON.parse(verificationToken ?? "{}");
       return (parsed.dkimTokens || []) as string[];
@@ -27,6 +30,23 @@ export function CustomDomainCard({ customDomain, domainVerified, verificationTok
       return [];
     }
   })();
+
+  const displayDomain = localDomain || customDomain;
+  const displayTokens = localDkimTokens.length > 0 ? localDkimTokens : parsedTokens;
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("Disalin ke clipboard!");
+  };
+
+  const copyAllRecords = () => {
+    if (!displayDomain) return;
+    const records = displayTokens.map((token) =>
+      `${token}._domainkey.${displayDomain} → ${token}.dkim.amazonses.com (CNAME)`
+    ).join("\n");
+    navigator.clipboard.writeText(records);
+    toast.success("Semua records disalin ke clipboard!");
+  };
 
   const addDomain = useMutation({
     mutationFn: async () => {
@@ -38,9 +58,11 @@ export function CustomDomainCard({ customDomain, domainVerified, verificationTok
       return data;
     },
     onSuccess: (data) => {
+      setLocalDkimTokens(data.dkimTokens || []);
+      setLocalDomain(data.domain);
       queryClient.invalidateQueries({ queryKey: ["profile"] });
       setDomainInput("");
-      toast.success(`Domain ${data.domain} ditambahkan! Tambahkan DKIM records ke DNS kamu.`);
+      toast.success(`Domain ${data.domain} berhasil ditambahkan!`);
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -75,6 +97,8 @@ export function CustomDomainCard({ customDomain, domainVerified, verificationTok
       return data;
     },
     onSuccess: () => {
+      setLocalDkimTokens([]);
+      setLocalDomain(null);
       queryClient.invalidateQueries({ queryKey: ["profile"] });
       toast.success("Domain dihapus");
     },
@@ -93,21 +117,21 @@ export function CustomDomainCard({ customDomain, domainVerified, verificationTok
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {customDomain ? (
+        {displayDomain ? (
           <>
             <div className="flex items-center justify-between rounded-lg border border-border p-4">
               <div className="flex items-center gap-3">
                 <Globe className="h-5 w-5 text-muted-foreground" />
                 <div>
-                  <p className="font-medium">{customDomain}</p>
+                  <p className="font-medium">{displayDomain}</p>
                   <div className="flex items-center gap-1.5 mt-1">
                     {domainVerified ? (
-                      <Badge variant="default" className="gap-1">
+                      <Badge variant="default" className="gap-1 bg-green-600">
                         <CheckCircle2 className="h-3 w-3" /> Verified
                       </Badge>
                     ) : (
-                      <Badge variant="secondary" className="gap-1">
-                        <AlertCircle className="h-3 w-3" /> Pending
+                      <Badge variant="secondary" className="gap-1 bg-yellow-100 text-yellow-800 border-yellow-300">
+                        <AlertCircle className="h-3 w-3" /> Pending Verification
                       </Badge>
                     )}
                   </div>
@@ -133,25 +157,68 @@ export function CustomDomainCard({ customDomain, domainVerified, verificationTok
               </div>
             </div>
 
-            {!domainVerified && dkimTokens.length > 0 && (
-              <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-3">
-                <p className="text-sm font-medium">DNS Records yang perlu ditambahkan:</p>
-                <p className="text-xs text-muted-foreground">
-                  Tambahkan CNAME records berikut ke DNS domain kamu:
-                </p>
-                <div className="space-y-2">
-                  {dkimTokens.map((token) => (
-                    <div key={token} className="rounded bg-background border border-border p-3 font-mono text-xs break-all">
-                      <p><span className="text-muted-foreground">Name:</span> {token}._domainkey.{customDomain}</p>
-                      <p><span className="text-muted-foreground">Value:</span> {token}.dkim.amazonses.com</p>
-                      <p><span className="text-muted-foreground">Type:</span> CNAME</p>
-                    </div>
-                  ))}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Setelah menambahkan records, klik "Check Status" untuk verifikasi. Propagasi DNS bisa memakan waktu hingga 72 jam.
-                </p>
-              </div>
+            {!domainVerified && displayTokens.length > 0 && (
+              <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
+                <AlertCircle className="h-4 w-4 text-blue-600" />
+                <AlertTitle className="text-blue-800 dark:text-blue-200">DKIM Records perlu ditambahkan</AlertTitle>
+                <AlertDescription className="mt-3 space-y-3">
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    Tambahkan CNAME records berikut ke DNS domain kamu untuk verifikasi:
+                  </p>
+                  <div className="space-y-2">
+                    {displayTokens.map((token) => (
+                      <div key={token} className="rounded bg-white dark:bg-background border border-blue-200 p-3 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-muted-foreground">Name:</span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 px-2"
+                            onClick={() => copyToClipboard(`${token}._domainkey.${displayDomain}`)}
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        <p className="font-mono text-xs break-all">{token}._domainkey.{displayDomain}</p>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-muted-foreground">Value:</span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 px-2"
+                            onClick={() => copyToClipboard(`${token}.dkim.amazonses.com`)}
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        <p className="font-mono text-xs break-all">{token}.dkim.amazonses.com</p>
+                        <span className="text-xs text-muted-foreground">Type: CNAME</span>
+                      </div>
+                    ))}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full gap-2 mt-2"
+                    onClick={copyAllRecords}
+                  >
+                    <Copy className="h-3.5 w-3.5" /> Salin Semua Records
+                  </Button>
+                  <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
+                    ⏱ Setelah menambahkan records, klik "Check Status" untuk verifikasi. Propagasi DNS bisa memakan waktu hingga 72 jam.
+                  </p>
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {domainVerified && (
+              <Alert className="border-green-200 bg-green-50 dark:bg-green-950/20">
+                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                <AlertTitle className="text-green-800 dark:text-green-200">Domain Terverifikasi</AlertTitle>
+                <AlertDescription className="text-sm text-green-700 dark:text-green-300">
+                  Email kamu akan dikirim dari domain <strong>{displayDomain}</strong>. Bisa langsung digunakan untuk mengirim campaign.
+                </AlertDescription>
+              </Alert>
             )}
           </>
         ) : (
