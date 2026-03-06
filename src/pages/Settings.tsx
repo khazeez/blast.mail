@@ -44,6 +44,7 @@ const Settings = () => {
   const [senderName, setSenderName] = useState("");
   const [senderEmail, setSenderEmail] = useState("");
   const [replyTo, setReplyTo] = useState("");
+  const [useDefaultDomain, setUseDefaultDomain] = useState(true);
 
   useEffect(() => {
     if (profile) {
@@ -52,6 +53,7 @@ const Settings = () => {
       setSenderName(profile.sender_name ?? "");
       setSenderEmail(profile.sender_email ?? "");
       setReplyTo(profile.reply_to_email ?? "");
+      setUseDefaultDomain(profile.use_default_domain ?? true);
     }
   }, [profile, user]);
 
@@ -81,6 +83,10 @@ const Settings = () => {
             setSenderEmail={setSenderEmail}
             replyTo={replyTo}
             setReplyTo={setReplyTo}
+            useDefaultDomain={useDefaultDomain}
+            setUseDefaultDomain={setUseDefaultDomain}
+            customDomain={profile?.custom_domain ?? null}
+            domainVerified={profile?.domain_verified ?? false}
           />
         )}
 

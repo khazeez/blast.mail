@@ -299,6 +299,7 @@ export type Database = {
           sender_email: string | null
           sender_name: string | null
           updated_at: string
+          use_default_domain: boolean
           user_id: string
         }
         Insert: {
@@ -314,6 +315,7 @@ export type Database = {
           sender_email?: string | null
           sender_name?: string | null
           updated_at?: string
+          use_default_domain?: boolean
           user_id: string
         }
         Update: {
@@ -329,6 +331,7 @@ export type Database = {
           sender_email?: string | null
           sender_name?: string | null
           updated_at?: string
+          use_default_domain?: boolean
           user_id?: string
         }
         Relationships: []

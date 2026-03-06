@@ -6,9 +6,10 @@ import { StepContent } from "@/components/campaigns/StepContent";
 import { StepReview } from "@/components/campaigns/StepReview";
 import { StepSend } from "@/components/campaigns/StepSend";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ArrowLeft, ArrowRight, AlertTriangle, ArrowRight as ArrowRightIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
@@ -45,6 +46,23 @@ const CampaignCreate = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+
+  const { data: profile } = useQuery({
+    queryKey: ["profile"],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const senderConfigured = profile?.sender_name && (profile?.use_default_domain || (profile?.custom_domain && profile?.domain_verified));
 
   const update = (partial: Partial<CampaignData>) =>
     setData((prev) => ({ ...prev, ...partial }));
@@ -109,6 +127,25 @@ const CampaignCreate = () => {
         </div>
 
         <CampaignStepper steps={steps} currentStep={step} />
+
+        {!senderConfigured && (
+          <Alert className="border-yellow-200 bg-yellow-50 dark:bg-yellow-950/20">
+            <AlertTriangle className="h-4 w-4 text-yellow-600" />
+            <AlertDescription className="flex items-center justify-between">
+              <span className="text-yellow-800 dark:text-yellow-200">
+                <strong>Pengirim belum dikonfigurasi.</strong> Atur sender name dan domain di halaman Settings.
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                className="ml-4 gap-2 border-yellow-300 hover:bg-yellow-100"
+                onClick={() => navigate("/settings/sender")}
+              >
+                Atur Sekarang <ArrowRightIcon className="h-3.5 w-3.5" />
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
 
         {step === 0 && <StepRecipients data={data} onChange={update} />}
         {step === 1 && <StepContent data={data} onChange={update} />}
