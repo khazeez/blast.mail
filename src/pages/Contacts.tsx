@@ -5,6 +5,7 @@ import { ContactsTable } from "@/components/contacts/ContactsTable";
 import { ContactFilters } from "@/components/contacts/ContactFilters";
 import { AddContactDialog } from "@/components/contacts/AddContactDialog";
 import { ManageListsDialog } from "@/components/contacts/ManageListsDialog";
+import { ImportCSVDialog } from "@/components/contacts/ImportCSVDialog";
 import { Button } from "@/components/ui/button";
 import { UserPlus, Upload, Download, Trash2, List } from "lucide-react";
 import { useI18n } from "@/hooks/use-i18n";
@@ -25,6 +26,7 @@ const Contacts = () => {
   const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [listsDialogOpen, setListsDialogOpen] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
 
   // Fetch lists
   const { data: lists = [] } = useQuery({
@@ -67,6 +69,40 @@ const Contacts = () => {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  // Export CSV function
+  const exportCSV = () => {
+    const dataToExport = filtered.length > 0 ? filtered : contacts;
+    if (dataToExport.length === 0) {
+      toast.error("Tidak ada kontak untuk diexport");
+      return;
+    }
+
+    const csvHeaders = ["name", "email", "status", "list", "tags", "created_at"];
+    const csvRows = dataToExport.map((c) => [
+      escapeCSV(c.name ?? ""),
+      escapeCSV(c.email),
+      escapeCSV(c.status),
+      escapeCSV(c.list_name ?? ""),
+      escapeCSV((c.tags ?? []).join("; ")),
+      escapeCSV(new Date(c.created_at).toLocaleDateString("id-ID")),
+    ]);
+
+    const csvContent = [
+      csvHeaders.join(","),
+      ...csvRows.map((row) => row.join(",")),
+    ].join("\n");
+
+    const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    const timestamp = new Date().toISOString().slice(0, 10);
+    link.download = `contacts_export_${timestamp}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast.success(`${dataToExport.length} kontak berhasil diexport!`);
+  };
+
   // Client-side filtering
   const filtered = contacts.filter((c) => {
     const matchSearch =
@@ -103,11 +139,11 @@ const Contacts = () => {
               <List className="h-4 w-4" />
               {t("contacts.manageLists")}
             </Button>
-            <Button variant="outline" size="sm" className="gap-2">
+            <Button variant="outline" size="sm" className="gap-2" onClick={() => setImportDialogOpen(true)}>
               <Upload className="h-4 w-4" />
               {t("contacts.importCSV")}
             </Button>
-            <Button variant="outline" size="sm" className="gap-2">
+            <Button variant="outline" size="sm" className="gap-2" onClick={exportCSV}>
               <Download className="h-4 w-4" />
               {t("contacts.export")}
             </Button>
@@ -142,9 +178,17 @@ const Contacts = () => {
 
         <AddContactDialog open={addDialogOpen} onOpenChange={setAddDialogOpen} lists={listNames} />
         <ManageListsDialog open={listsDialogOpen} onOpenChange={setListsDialogOpen} />
+        <ImportCSVDialog open={importDialogOpen} onOpenChange={setImportDialogOpen} lists={listNames} />
       </div>
     </DashboardLayout>
   );
 };
+
+function escapeCSV(value: string): string {
+  if (value.includes(",") || value.includes('"') || value.includes("\n")) {
+    return `"${value.replace(/"/g, '""')}"`;
+  }
+  return value;
+}
 
 export default Contacts;
