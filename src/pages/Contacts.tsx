@@ -77,20 +77,20 @@ const Contacts = () => {
       return;
     }
 
-    const csvHeaders = ["name", "email", "status", "list", "tags", "created_at"];
+    const csvHeaders = ["Name", "Email", "Status", "List", "Tags", "Created At"];
     const csvRows = dataToExport.map((c) => [
-      escapeCSV(c.name ?? ""),
-      escapeCSV(c.email),
-      escapeCSV(c.status),
-      escapeCSV(c.list_name ?? ""),
-      escapeCSV((c.tags ?? []).join("; ")),
-      escapeCSV(new Date(c.created_at).toLocaleDateString("id-ID")),
+      c.name ?? "",
+      c.email,
+      c.status,
+      c.list_name ?? "",
+      (c.tags ?? []).join("; "),
+      new Date(c.created_at).toLocaleDateString("id-ID"),
     ]);
 
-    const csvContent = [
-      csvHeaders.join(","),
-      ...csvRows.map((row) => row.join(",")),
-    ].join("\n");
+    const allRows = [csvHeaders, ...csvRows];
+    const csvContent = allRows
+      .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
 
     const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -183,12 +183,5 @@ const Contacts = () => {
     </DashboardLayout>
   );
 };
-
-function escapeCSV(value: string): string {
-  if (value.includes(",") || value.includes('"') || value.includes("\n")) {
-    return `"${value.replace(/"/g, '""')}"`;
-  }
-  return value;
-}
 
 export default Contacts;

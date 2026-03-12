@@ -205,8 +205,16 @@ export function ImportCSVDialog({ open, onOpenChange, lists }: ImportCSVDialogPr
   };
 
   const downloadTemplate = () => {
-    const csv = "name,email,tags\nJohn Doe,john@example.com,vip;newsletter\nJane Smith,jane@example.com,customer";
-    const blob = new Blob([csv], { type: "text/csv" });
+    const rows = [
+      ["name", "email", "tags"],
+      ["John Doe", "john@example.com", "vip;newsletter"],
+      ["Jane Smith", "jane@example.com", "customer"],
+      ["Ahmad Rizki", "ahmad@company.co.id", "premium;newsletter"],
+      ["Siti Nurhaliza", "siti@brand.com", "vip"],
+      ["Budi Santoso", "budi@startup.io", ""],
+    ];
+    const csv = rows.map((r) => r.map((c) => `"${c}"`).join(",")).join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
