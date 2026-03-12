@@ -49,6 +49,11 @@
     --warning-foreground: 0 0% 100%;
   }
 
+/* Dark mode: hover on sidebar should be translucent gray for readability */
+.dark [data-sidebar="menu-button"]:hover {
+  background-color: rgba(0, 0, 0, 0.25);
+}
+
 .dark {
     --background: 224 20% 6%;
     --foreground: 220 16% 92%;
