@@ -8,6 +8,7 @@ import {
   BookOpen, Play, Clock, ArrowRight, CheckCircle,
   ChevronRight, Star, Users, Zap, Target, BarChart3, Mail, Palette
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface Course {
   id: string;
@@ -105,6 +106,7 @@ const imageIcons: Record<string, React.ElementType> = {
 };
 
 const Learn = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const enrolledCourses = courses.filter(c => c.enrolled);
   const otherCourses = courses.filter(c => !c.enrolled);
@@ -208,9 +210,9 @@ const Learn = () => {
                             <Clock className="h-3 w-3" /> {course.duration}
                           </span>
                         </div>
-                        <Button variant="ghost" size="sm" className="h-7 text-xs gap-1">
-                          {course.enrolled ? "Continue" : "Start"} <ChevronRight className="h-3 w-3" />
-                        </Button>
+              <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => navigate(`/learn/${course.id}`)}>
+                {course.enrolled ? "Continue" : "Start"} <ChevronRight className="h-3 w-3" />
+              </Button>
                       </div>
                     </CardContent>
                   </Card>
