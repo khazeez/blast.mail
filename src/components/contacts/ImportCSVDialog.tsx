@@ -6,12 +6,13 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload, FileText, CheckCircle2, AlertTriangle, Loader2, Download, X } from "lucide-react";
+import { Upload, FileText, FileSpreadsheet, CheckCircle2, AlertTriangle, Loader2, Download, X } from "lucide-react";
 import { useState, useRef, useCallback } from "react";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import * as XLSX from "xlsx";
 
 interface ListOption {
   id: string;
@@ -54,6 +55,16 @@ function parseCSV(text: string): { headers: string[]; rows: string[][] } {
   return { headers, rows };
 }
 
+function parseExcel(buffer: ArrayBuffer): { headers: string[]; rows: string[][] } {
+  const wb = XLSX.read(buffer, { type: "array" });
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const data = XLSX.utils.sheet_to_json<string[]>(ws, { header: 1 });
+  if (data.length === 0) return { headers: [], rows: [] };
+  const headers = (data[0] as string[]).map((h) => String(h ?? "").trim().toLowerCase());
+  const rows = data.slice(1).map((r) => (r as string[]).map((c) => String(c ?? "").trim()));
+  return { headers, rows };
+}
+
 function findColumnIndex(headers: string[], possibilities: string[]): number {
   for (const p of possibilities) {
     const idx = headers.findIndex((h) => h === p || h.includes(p));
@@ -69,7 +80,6 @@ export function ImportCSVDialog({ open, onOpenChange, lists }: ImportCSVDialogPr
 
   const [file, setFile] = useState<File | null>(null);
   const [parsedData, setParsedData] = useState<ParsedRow[]>([]);
-  const [headers, setHeaders] = useState<string[]>([]);
   const [listId, setListId] = useState("");
   const [duplicateCount, setDuplicateCount] = useState(0);
   const [invalidCount, setInvalidCount] = useState(0);
@@ -77,64 +87,81 @@ export function ImportCSVDialog({ open, onOpenChange, lists }: ImportCSVDialogPr
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+  const processData = (headers: string[], rows: string[][]) => {
+    const emailIdx = findColumnIndex(headers, ["email", "e-mail", "email address"]);
+    const nameIdx = findColumnIndex(headers, ["name", "nama", "full name", "fullname"]);
+    const tagsIdx = findColumnIndex(headers, ["tags", "tag", "label"]);
+
+    if (emailIdx === -1) {
+      toast.error("Kolom 'email' tidak ditemukan. Pastikan header memiliki kolom 'email'.");
+      return null;
+    }
+
+    const seen = new Set<string>();
+    let dupes = 0;
+    let invalid = 0;
+    const parsed: ParsedRow[] = [];
+
+    for (const row of rows) {
+      const email = (row[emailIdx] ?? "").trim().toLowerCase().replace(/^["']|["']$/g, "");
+      if (!email) continue;
+
+      if (!emailRegex.test(email)) { invalid++; continue; }
+      if (seen.has(email)) { dupes++; continue; }
+      seen.add(email);
+
+      const name = nameIdx !== -1 ? (row[nameIdx] ?? "").trim().replace(/^["']|["']$/g, "") : "";
+      const tags = tagsIdx !== -1
+        ? (row[tagsIdx] ?? "").split(";").map((t) => t.trim()).filter(Boolean)
+        : [];
+      parsed.push({ email, name, tags });
+    }
+
+    return { parsed, dupes, invalid };
+  };
+
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
     if (!selected) return;
-    if (!selected.name.endsWith(".csv")) {
-      toast.error("Hanya file CSV yang didukung");
+
+    const ext = selected.name.split(".").pop()?.toLowerCase();
+    if (!["csv", "xlsx", "xls"].includes(ext ?? "")) {
+      toast.error("Format file tidak didukung. Gunakan CSV atau Excel (.xlsx/.xls)");
       return;
     }
 
     const reader = new FileReader();
     reader.onload = (ev) => {
-      const text = ev.target?.result as string;
-      const { headers: h, rows } = parseCSV(text);
-      setHeaders(h);
+      let headers: string[];
+      let rows: string[][];
 
-      const emailIdx = findColumnIndex(h, ["email", "e-mail", "email address"]);
-      const nameIdx = findColumnIndex(h, ["name", "nama", "full name", "fullname"]);
-      const tagsIdx = findColumnIndex(h, ["tags", "tag", "label"]);
-
-      if (emailIdx === -1) {
-        toast.error("Kolom 'email' tidak ditemukan di CSV. Pastikan header memiliki kolom 'email'.");
-        return;
+      if (ext === "csv") {
+        const text = ev.target?.result as string;
+        const result = parseCSV(text);
+        headers = result.headers;
+        rows = result.rows;
+      } else {
+        const buffer = ev.target?.result as ArrayBuffer;
+        const result = parseExcel(buffer);
+        headers = result.headers;
+        rows = result.rows;
       }
 
-      const seen = new Set<string>();
-      let dupes = 0;
-      let invalid = 0;
-      const parsed: ParsedRow[] = [];
+      const data = processData(headers, rows);
+      if (!data) return;
 
-      for (const row of rows) {
-        const email = (row[emailIdx] ?? "").trim().toLowerCase().replace(/^["']|["']$/g, "");
-        if (!email) continue;
-
-        if (!emailRegex.test(email)) {
-          invalid++;
-          continue;
-        }
-
-        if (seen.has(email)) {
-          dupes++;
-          continue;
-        }
-        seen.add(email);
-
-        const name = nameIdx !== -1 ? (row[nameIdx] ?? "").trim().replace(/^["']|["']$/g, "") : "";
-        const tags = tagsIdx !== -1
-          ? (row[tagsIdx] ?? "").split(";").map((t) => t.trim()).filter(Boolean)
-          : [];
-
-        parsed.push({ email, name, tags });
-      }
-
-      setDuplicateCount(dupes);
-      setInvalidCount(invalid);
-      setParsedData(parsed);
+      setDuplicateCount(data.dupes);
+      setInvalidCount(data.invalid);
+      setParsedData(data.parsed);
       setFile(selected);
       setStep("preview");
     };
-    reader.readAsText(selected);
+
+    if (ext === "csv") {
+      reader.readAsText(selected);
+    } else {
+      reader.readAsArrayBuffer(selected);
+    }
   }, []);
 
   const importMutation = useMutation({
@@ -142,10 +169,8 @@ export function ImportCSVDialog({ open, onOpenChange, lists }: ImportCSVDialogPr
       if (!user) throw new Error("Not authenticated");
       if (parsedData.length === 0) throw new Error("Tidak ada data untuk diimport");
 
-      // Batch insert in chunks of 500
       const chunkSize = 500;
       let imported = 0;
-      const skipped = 0;
 
       for (let i = 0; i < parsedData.length; i += chunkSize) {
         const chunk = parsedData.slice(i, i + chunkSize).map((row) => ({
@@ -191,7 +216,6 @@ export function ImportCSVDialog({ open, onOpenChange, lists }: ImportCSVDialogPr
   const reset = () => {
     setFile(null);
     setParsedData([]);
-    setHeaders([]);
     setListId("");
     setDuplicateCount(0);
     setInvalidCount(0);
@@ -204,7 +228,7 @@ export function ImportCSVDialog({ open, onOpenChange, lists }: ImportCSVDialogPr
     onOpenChange(v);
   };
 
-  const downloadTemplate = () => {
+  const downloadTemplateCSV = () => {
     const rows = [
       ["name", "email", "tags"],
       ["John Doe", "john@example.com", "vip;newsletter"],
@@ -223,16 +247,38 @@ export function ImportCSVDialog({ open, onOpenChange, lists }: ImportCSVDialogPr
     URL.revokeObjectURL(url);
   };
 
+  const downloadTemplateExcel = () => {
+    const data = [
+      ["name", "email", "tags"],
+      ["John Doe", "john@example.com", "vip;newsletter"],
+      ["Jane Smith", "jane@example.com", "customer"],
+      ["Ahmad Rizki", "ahmad@company.co.id", "premium;newsletter"],
+      ["Siti Nurhaliza", "siti@brand.com", "vip"],
+      ["Budi Santoso", "budi@startup.io", ""],
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(data);
+
+    // Column widths
+    ws["!cols"] = [{ wch: 20 }, { wch: 30 }, { wch: 25 }];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Contacts");
+    XLSX.writeFile(wb, "contacts_template.xlsx");
+  };
+
+  const fileIcon = file?.name.endsWith(".csv") ? FileText : FileSpreadsheet;
+  const FileIcon = fileIcon;
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-xl max-h-[85vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Upload className="h-5 w-5 text-primary" />
-            Import Contacts dari CSV
+            Import Contacts
           </DialogTitle>
           <DialogDescription>
-            Upload file CSV dengan kolom email (wajib), name, dan tags
+            Upload file CSV atau Excel (.xlsx) dengan kolom email (wajib), name, dan tags
           </DialogDescription>
         </DialogHeader>
 
@@ -245,29 +291,35 @@ export function ImportCSVDialog({ open, onOpenChange, lists }: ImportCSVDialogPr
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={handleDrop}
               >
-                <FileText className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-                <p className="text-sm font-medium">Drag & drop file CSV di sini</p>
-                <p className="text-xs text-muted-foreground mt-1">atau klik untuk memilih file</p>
+                <FileSpreadsheet className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+                <p className="text-sm font-medium">Drag & drop file di sini</p>
+                <p className="text-xs text-muted-foreground mt-1">CSV atau Excel (.xlsx, .xls)</p>
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept=".csv"
+                  accept=".csv,.xlsx,.xls"
                   className="hidden"
                   onChange={handleFileSelect}
                 />
               </div>
 
-              <Button variant="outline" size="sm" className="gap-2 w-full" onClick={downloadTemplate}>
-                <Download className="h-4 w-4" />
-                Download Template CSV
-              </Button>
+              <div className="grid grid-cols-2 gap-2">
+                <Button variant="outline" size="sm" className="gap-2" onClick={downloadTemplateCSV}>
+                  <FileText className="h-4 w-4" />
+                  Template CSV
+                </Button>
+                <Button variant="outline" size="sm" className="gap-2" onClick={downloadTemplateExcel}>
+                  <FileSpreadsheet className="h-4 w-4" />
+                  Template Excel
+                </Button>
+              </div>
 
               <Alert>
                 <AlertDescription className="text-xs text-muted-foreground space-y-1">
-                  <p><strong>Format CSV yang didukung:</strong></p>
+                  <p><strong>Format yang didukung:</strong></p>
+                  <p>• File CSV (.csv) atau Excel (.xlsx, .xls)</p>
                   <p>• Kolom <code className="bg-muted px-1 rounded">email</code> (wajib)</p>
-                  <p>• Kolom <code className="bg-muted px-1 rounded">name</code> (opsional)</p>
-                  <p>• Kolom <code className="bg-muted px-1 rounded">tags</code> (opsional, pisahkan dengan titik koma)</p>
+                  <p>• Kolom <code className="bg-muted px-1 rounded">name</code> dan <code className="bg-muted px-1 rounded">tags</code> (opsional)</p>
                 </AlertDescription>
               </Alert>
             </>
@@ -276,7 +328,7 @@ export function ImportCSVDialog({ open, onOpenChange, lists }: ImportCSVDialogPr
           {step === "preview" && (
             <>
               <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 border">
-                <FileText className="h-5 w-5 text-primary shrink-0" />
+                <FileIcon className="h-5 w-5 text-primary shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{file?.name}</p>
                   <p className="text-xs text-muted-foreground">{parsedData.length} kontak valid</p>
@@ -316,28 +368,39 @@ export function ImportCSVDialog({ open, onOpenChange, lists }: ImportCSVDialogPr
                 </Select>
               </div>
 
+              {/* Preview Table */}
               <div className="border rounded-lg overflow-hidden">
-                <div className="text-xs font-medium bg-muted/50 px-3 py-2">Preview (5 data pertama)</div>
-                <div className="divide-y">
-                  {parsedData.slice(0, 5).map((row, i) => (
-                    <div key={i} className="flex items-center gap-3 px-3 py-2 text-sm">
-                      <span className="text-xs text-muted-foreground w-5">{i + 1}</span>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{row.name || "-"}</p>
-                        <p className="text-xs text-muted-foreground truncate">{row.email}</p>
-                      </div>
-                      {row.tags.length > 0 && (
-                        <div className="flex gap-1">
-                          {row.tags.slice(0, 2).map((t) => (
-                            <Badge key={t} variant="outline" className="text-[10px]">{t}</Badge>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-muted/50 border-b-2 border-border">
+                      <th className="px-3 py-2 text-left font-semibold text-xs w-8">#</th>
+                      <th className="px-3 py-2 text-left font-semibold text-xs">Name</th>
+                      <th className="px-3 py-2 text-left font-semibold text-xs">Email</th>
+                      <th className="px-3 py-2 text-left font-semibold text-xs">Tags</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {parsedData.slice(0, 5).map((row, i) => (
+                      <tr key={i} className="hover:bg-muted/30">
+                        <td className="px-3 py-2 text-xs text-muted-foreground">{i + 1}</td>
+                        <td className="px-3 py-2 font-medium truncate max-w-[120px]">{row.name || "-"}</td>
+                        <td className="px-3 py-2 text-muted-foreground truncate max-w-[180px]">{row.email}</td>
+                        <td className="px-3 py-2">
+                          <div className="flex gap-1">
+                            {row.tags.slice(0, 2).map((t) => (
+                              <Badge key={t} variant="outline" className="text-[10px]">{t}</Badge>
+                            ))}
+                            {row.tags.length > 2 && (
+                              <span className="text-[10px] text-muted-foreground">+{row.tags.length - 2}</span>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
                 {parsedData.length > 5 && (
-                  <div className="px-3 py-2 text-xs text-muted-foreground bg-muted/30">
+                  <div className="px-3 py-2 text-xs text-muted-foreground bg-muted/30 border-t">
                     ...dan {parsedData.length - 5} kontak lainnya
                   </div>
                 )}
